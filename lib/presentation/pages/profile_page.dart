@@ -56,14 +56,7 @@ class _ProfilePageState extends State<ProfilePage> {
   void pickImageFromGallery() async {
     final files = await imageHelper.pickImage();
     if (files.isNotEmpty) {
-      final croppedFile = await imageHelper.crop(
-        file: files.first,
-        cropStyle: CropStyle.circle,
-      );
-
-      if (croppedFile != null) {
-        uploadImage(File(croppedFile.path));
-      }
+      cropFile(files.first);
     }
   }
 
@@ -72,10 +65,21 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void pickImageFromCamera() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.camera);
+    final files = await imageHelper.pickImage(source: ImageSource.camera);
 
-    if (image != null) {
-      uploadImage(File(image.path));
+    if (files.isNotEmpty) {
+      cropFile(files.first);
+    }
+  }
+
+  void cropFile(XFile file) async {
+    final croppedFile = await imageHelper.crop(
+      file: file,
+      cropStyle: CropStyle.circle,
+    );
+
+    if (croppedFile != null) {
+      uploadImage(File(croppedFile.path));
     }
   }
 
