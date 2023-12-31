@@ -1,14 +1,15 @@
 import 'dart:io';
 
 import 'package:auto_route/auto_route.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_app/common/util/helper_functions.dart';
+import 'package:flutter_chat_app/common/util/image_helper.dart';
 import 'package:flutter_chat_app/domain/model/user.dart';
 import 'package:flutter_chat_app/presentation/providers/auth_provider.dart';
 import 'package:flutter_chat_app/presentation/widgets/my_button.dart';
 import 'package:flutter_chat_app/presentation/widgets/my_text_form_field.dart';
 import 'package:flutter_chat_app/presentation/widgets/user_avatar.dart';
+import 'package:image_cropper/image_cropper.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -22,41 +23,11 @@ class ProfilePage extends StatefulWidget {
 
 class _ProfilePageState extends State<ProfilePage> {
   final formKey = GlobalKey<FormState>();
+  final imageHelper = ImageHelper();
   TextEditingController fullNameController = TextEditingController();
   User? currentUser;
 
   void showImagePickePopUp() {
-    // final isIos = Platform.isIOS;
-    // if (isIos) {
-    //   showCupertinoDialog(
-    //     context: context,
-    //     builder: (context) => CupertinoAlertDialog(
-    //       title: const Text("Confirmation"),
-    //       content: const Text("Choose your image source"),
-    //       actions: [
-    //         CupertinoDialogAction(
-    //           isDestructiveAction: false,
-    //           onPressed: () {
-    //             Navigator.pop(context);
-    //             pickImageFromCamera();
-    //           },
-    //           child: const Text("Camera"),
-    //         ),
-    //         CupertinoDialogAction(
-    //           isDestructiveAction: false,
-    //           onPressed: () {
-    //             Navigator.pop(context);
-    //             pickImageFromGallery();
-    //           },
-    //           child: const Text("Gallery"),
-    //         )
-    //       ],
-    //     ),
-    //   );
-    // } else {
-
-    // }
-
     showAdaptiveDialog(
       context: context,
       builder: (context) => AlertDialog.adaptive(
@@ -83,15 +54,20 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void pickImageFromGallery() async {
-    final image = await ImagePicker().pickImage(source: ImageSource.gallery);
+    final files = await imageHelper.pickImage();
+    if (files.isNotEmpty) {
+      final croppedFile = await imageHelper.crop(
+        file: files.first,
+        cropStyle: CropStyle.circle,
+      );
 
-    if (image != null) {
-      uploadImage(File(image.path));
+      if (croppedFile != null) {
+        uploadImage(File(croppedFile.path));
+      }
     }
   }
 
   void uploadImage(File image) {
-    print('upload image ready');
     context.read<AuthProvider>().uploadProfileImage(image, currentUser!.id);
   }
 
